@@ -208,7 +208,7 @@ function buildCard(deal, index) {
       <h3 class="card-title">${titulo}</h3>
       ${deal.notas ? `<p class="card-desc">${deal.notas}</p>` : ""}
       ${priceHtml}
-      // ${timerHtml}
+      <!-- ${timerHtml} -->
       <span class="card-cta">🛒 Ver oferta →</span>
     </div>`;
 
