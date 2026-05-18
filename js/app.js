@@ -81,6 +81,10 @@ const I18N = {
         a: "Únete a nuestro grupo de WhatsApp para recibir notificaciones instantáneas de las mejores deals, cupones exclusivos y ofertas flash — totalmente gratis."
       },
     ],
+    /* Community section */
+    communityTitle: "¡Únete a nuestra comunidad!",
+    communitySub: "Recibe las mejores ofertas, cupones exclusivos y alertas flash directamente en tu WhatsApp — totalmente gratis.",
+    communityBtn: "Unirse ahora",
     /* WhatsApp */
     waJoin: "Únete al grupo",
     waTooltip: "🔔 Recibe ofertas en WhatsApp",
@@ -155,6 +159,9 @@ const I18N = {
         a: "Join our WhatsApp group to receive instant notifications about the best deals, exclusive coupons, and flash sales — completely free."
       },
     ],
+    communityTitle: "Join our community!",
+    communitySub: "Get the best deals, exclusive coupons, and flash sale alerts directly on your WhatsApp — completely free.",
+    communityBtn: "Join now",
     waJoin: "Join the group",
     waTooltip: "🔔 Get deals on WhatsApp",
     waLink: "https://chat.whatsapp.com/XXXXXX_ENGLISH",
