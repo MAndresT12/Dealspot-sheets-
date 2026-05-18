@@ -139,15 +139,18 @@ input {
   padding: .4rem;
 }
 
+/* DESPUÉS */
 @media(max-width:600px) {
   .header-search {
+    display: block;
+  }
+
+  /* ← siempre visible */
+  .menu-btn {
     display: none;
   }
 
-  .menu-btn {
-    display: block;
-    margin-left: auto;
-  }
+  /* ← oculta el botón de 3 líneas */
 }
 
 /* ── HERO ── */
