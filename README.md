@@ -1,125 +1,133 @@
-# ⚡ DealSpot × Google Sheets
+# ⚡ SaveMoreDeals / AhorraMásUSA × Google Sheets — v2.0
 
 Tu sitio de deals se alimenta 100% de Google Sheets.
-Agregas un link → aparece en el sitio. Borras una fila → desaparece.
-Sin backend. Sin base de datos. Sin complicaciones.
+Soporta contenido **bilingüe (ES/EN)**, **cupones con contador de tiempo**, y logos intercambiables.
 
 ---
 
-## Paso 1 — Crear tu Google Sheet
+## Paso 1 — Estructura del Google Sheet
 
 Ve a [sheets.new](https://sheets.new) para crear una hoja nueva.
 
-### Columnas (copia exactamente estos nombres en la fila 1)
+### Columnas completas (copia exactamente estos nombres en la fila 1)
 
-| Col | Nombre              | ¿Obligatorio? | Ejemplo                          | Notas                                   |
-|-----|---------------------|--------------|----------------------------------|-----------------------------------------|
-| A   | `url`               | ✅ Sí        | `https://amzn.to/43fHTfs`       | Tu link de afiliado                     |
-| B   | `titulo`            | Recomendado  | `AirPods Pro 2da Gen`            | Nombre del producto                     |
-| C   | `imagen`            | Opcional     | `https://m.media-amazon.com/...` | URL de la imagen del producto           |
-| D   | `precio`            | Opcional     | `189.99`                         | Solo el número, sin $ ni símbolo        |
-| E   | `precio_anterior`   | Opcional     | `249.99`                         | Calcula el % de descuento automáticamente|
-| F   | `categoria`         | Opcional     | `tecnologia`                     | Ver opciones abajo ↓                    |
-| G   | `badge`             | Opcional     | `hot`                            | `hot` `new` `limited` `sale`            |
-| H   | `notas`             | Opcional     | `Incluye estuche USB-C`          | Descripción corta visible en la card    |
-| I   | `expira_en`         | Opcional     | `24`                             | Horas hasta que expire (timer visible)  |
-| J   | `activo`            | Opcional     | `si`                             | `no` para ocultar sin borrar            |
-
-### Categorías válidas para columna F
-```
-tecnologia   gaming   hogar   moda   deportes   belleza   viajes   comida   otros
-```
-
-### Ejemplo de cómo se ve tu Sheet
-
-| url | titulo | imagen | precio | precio_anterior | categoria | badge | notas | expira_en | activo |
-|-----|--------|--------|--------|-----------------|-----------|-------|-------|-----------|--------|
-| https://amzn.to/43fHTfs | AirPods Pro 2da Gen | https://... | 189.99 | 249.99 | tecnologia | hot | Cancelación de ruido ANC | 24 | si |
-| https://amzn.to/49WhOpt | PlayStation 5 Slim | | 429.99 | 549.99 | gaming | limited | Bundle con DualSense | 12 | si |
-| https://amzn.to/3RaEQTf | Robot Aspirador | | 299.00 | 499.99 | hogar | sale | | | si |
+| Col | Nombre              | ¿Obligatorio? | Ejemplo                          | Notas                                                          |
+|-----|---------------------|--------------|----------------------------------|----------------------------------------------------------------|
+| A   | `url`               | ✅ Sí        | `https://amzn.to/43fHTfs`        | Tu link de afiliado                                            |
+| B   | `titulo_es`         | Recomendado  | `AirPods Pro 2da Gen`            | Título en **español**                                          |
+| C   | `titulo_en`         | Opcional     | `AirPods Pro 2nd Gen`            | Título en **inglés** (si vacío, usa titulo_es)                 |
+| D   | `imagen`            | Opcional     | `https://m.media-amazon.com/...` | URL de la imagen del producto                                  |
+| E   | `precio`            | Opcional     | `189.99`                         | Solo el número, sin $ ni símbolo                               |
+| F   | `precio_anterior`   | Opcional     | `249.99`                         | Calcula el % de descuento automáticamente                       |
+| G   | `categoria`         | Opcional     | `tecnologia`                     | Ver opciones abajo ↓                                           |
+| H   | `badge`             | Opcional     | `hot`                            | `hot` `new` `limited` `sale`                                   |
+| I   | `notas_es`          | Opcional     | `Incluye estuche USB-C`          | Descripción corta en **español**                               |
+| J   | `notas_en`          | Opcional     | `Includes USB-C case`            | Descripción corta en **inglés** (si vacío, usa notas_es)       |
+| K   | `expira_en`         | Opcional     | `24`                             | Horas hasta que expire la **oferta** (timer visible)           |
+| L   | `activo`            | Opcional     | `si`                             | `no` para ocultar sin borrar                                   |
+| M   | `cupon`             | Opcional     | `SAVE20`                         | Código de cupón — aparece con botón "Copiar" y tijera          |
+| N   | `expira_cupon`      | Opcional     | `48`                             | Horas hasta que expire el **cupón** (contador en vivo hh:mm:ss)|
 
 > 💡 **Lo mínimo que necesitas:** solo la columna `url`. El resto es opcional.
 
 ---
 
+### Categorías válidas para columna G
+```
+tecnologia   gaming   hogar   moda   deportes   belleza   viajes   comida   otros
+```
+
+> Los nombres de categoría son slugs internos (siempre en español).
+> La traducción al inglés ("Tech", "Home", "Fashion"…) se hace automáticamente.
+
+### Badges válidos para columna H
+```
+hot   new   limited   sale
+```
+
+---
+
+### Ejemplo de hoja completa
+
+| url | titulo_es | titulo_en | imagen | precio | precio_anterior | categoria | badge | notas_es | notas_en | expira_en | activo | cupon | expira_cupon |
+|-----|-----------|-----------|--------|--------|-----------------|-----------|-------|----------|----------|-----------|--------|-------|--------------|
+| https://amzn.to/43fHTfs | AirPods Pro 2da Gen | AirPods Pro 2nd Gen | https://... | 189.99 | 249.99 | tecnologia | hot | Cancelación de ruido ANC | Active Noise Cancellation | 24 | si | SAVE20 | 48 |
+| https://amzn.to/49WhOpt | PlayStation 5 Slim | PlayStation 5 Slim | | 429.99 | 549.99 | gaming | limited | Bundle con DualSense | Bundle with DualSense | 12 | si | | |
+
+---
+
 ## Paso 2 — Publicar el Sheet
 
-Esto es lo más importante. Sin esto el sitio no puede leer los datos.
-
-1. En tu Google Sheet: **Archivo → Compartir → Publicar en la web**
-2. En el primer menú: selecciona **"Hoja 1"** (o el nombre de tu hoja)
-3. En el segundo menú: selecciona **"Valores separados por comas (.csv)"**
+1. **Archivo → Compartir → Publicar en la web**
+2. Selecciona **"Hoja 1"** (o el nombre de tu hoja)
+3. Selecciona **"Valores separados por comas (.csv)"**
 4. Clic en **"Publicar"** → confirma con "Aceptar"
-5. Copia la URL que aparece — la necesitas para el Paso 3
+5. Copia la URL que aparece
 
 ---
 
-## Paso 3 — Obtener el SHEET_ID
+## Paso 3 — Pegar la URL en app.js
 
-De la URL de tu Google Sheet, copia el ID que está entre `/d/` y `/edit`:
-
-```
-https://docs.google.com/spreadsheets/d/  1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms  /edit
-                                          ↑ ↑ ↑ ESTE ES EL SHEET_ID ↑ ↑ ↑
-```
-
-Luego abre `js/app.js` y reemplaza en la línea 22:
+Abre `app.js` y reemplaza en la línea de `CSV_URL`:
 
 ```javascript
-// ANTES:
-const SHEET_ID = "TU_SHEET_ID_AQUI";
-
-// DESPUÉS (ejemplo):
-const SHEET_ID = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms";
+const CSV_URL = "PEGA_AQUI_TU_URL_DE_GOOGLE_SHEETS_CSV";
 ```
 
 ---
 
-## Paso 4 — Subir a GitHub Pages
+## Paso 4 — Carpeta de imágenes
+
+Pon tus dos logos en la carpeta `images/`:
+
+```
+images/
+├── logo-es.png   ← Logo con "AhorraMásUSA" (fondo transparente)
+└── logo-en.png   ← Logo con "SaveMoreDeals" (fondo transparente)
+```
+
+Ver `images/README.md` para especificaciones de tamaño.
+
+---
+
+## Paso 5 — Subir a GitHub Pages
 
 ```bash
-# 1. Dentro de la carpeta dealspot:
 git init
 git add .
-git commit -m "Launch DealSpot"
-
-# 2. Crear repo en github.com (público, sin README inicial)
-git remote add origin https://github.com/TU-USUARIO/dealspot.git
+git commit -m "Launch SaveMoreDeals / AhorraMásUSA"
+git remote add origin https://github.com/TU-USUARIO/savemoredeals.git
 git branch -M main
 git push -u origin main
-
-# 3. En GitHub: Settings → Pages → Branch: main → Save
 ```
 
-Tu sitio queda en: `https://TU-USUARIO.github.io/dealspot/`
+En GitHub: **Settings → Pages → Branch: main → Save**
 
 ---
 
-## Workflow diario (agregar un deal nuevo)
+## Cómo funciona el cupón
 
-1. Abre tu Google Sheet
-2. Agrega una nueva fila con la URL del afiliado y los datos que quieras
-3. ¡Listo! El sitio se actualiza solo en la próxima visita (caché de 30 min)
-
-No necesitas tocar código nunca más.
-
----
-
-## Cómo obtener la imagen del producto (Amazon)
-
-En Amazon, haz clic derecho en la imagen del producto → "Copiar dirección de imagen".
-Pega esa URL en la columna `imagen` de tu Sheet.
+1. Agrega el código en la columna `cupon` (ej: `SAVE20`)
+2. Si tiene expiry, agrega las horas en `expira_cupon` (ej: `48` = 2 días)
+3. En la card aparecerá automáticamente:
+   - Icono de tijera animado ✂️
+   - El código del cupón
+   - Botón **Copiar** (copia al portapapeles con animación de confirmación)
+   - Contador regresivo en vivo `⏱ Válido por: 01h 23m 45s`
 
 ---
 
 ## Estructura de archivos
 
 ```
-dealspot/
+project/
 ├── index.html       ← El sitio
-├── css/styles.css   ← Estilos
-├── js/app.js        ← Lógica (aquí pones el SHEET_ID)
-├── .nojekyll        ← Requerido por GitHub Pages
+├── app.js           ← Lógica principal
+├── styles.css       ← Estilos
+├── images/
+│   ├── logo-es.png  ← Logo en español
+│   ├── logo-en.png  ← Logo en inglés
+│   └── README.md    ← Specs de imagen
 └── README.md        ← Esta guía
 ```
 
@@ -127,17 +135,14 @@ dealspot/
 
 ## Preguntas frecuentes
 
-**¿Cada cuánto se actualiza el sitio?**
-La caché dura 30 minutos. Después de ese tiempo, la próxima visita recarga los datos del Sheet.
+**¿Los títulos y notas en inglés son obligatorios?**
+No. Si dejas `titulo_en` y `notas_en` vacíos, el sitio mostrará el español en ambos idiomas.
+
+**¿Puedo tener categorías distintas para inglés y español?**
+No es necesario — la categoría es un slug interno (`tecnologia`, `gaming`…) y la traducción se hace automáticamente. Solo necesitas una columna `categoria`.
+
+**¿Qué pasa cuando el cupón expira?**
+El contador desaparece y se muestra "⚠️ Cupón expirado". El código sigue visible para referencia.
 
 **¿Puedo ocultar un deal sin borrarlo?**
 Sí: pon `no` en la columna `activo`.
-
-**¿Funciona con links de AliExpress, Walmart, etc.?**
-Sí, cualquier URL funciona. La tienda se detecta automáticamente del dominio.
-
-**¿El precio se obtiene automáticamente?**
-No. Ponlo manualmente en la columna `precio`. Amazon no permite obtenerlo automáticamente sin su API oficial (que requiere aprobación y ventas previas).
-
-**¿Es gratis?**
-Sí. Google Sheets es gratis, GitHub Pages es gratis.
