@@ -26,7 +26,7 @@ Ve a [sheets.new](https://sheets.new) para crear una hoja nueva.
 | K   | `expira_en`         | Opcional     | `24`                             | Horas hasta que expire la **oferta** (timer visible)           |
 | L   | `activo`            | Opcional     | `si`                             | `no` para ocultar sin borrar                                   |
 | M   | `cupon`             | Opcional     | `SAVE20`                         | Código de cupón — aparece con botón "Copiar" y tijera          |
-| N   | `expira_cupon`      | Opcional     | `48`                             | Horas hasta que expire el **cupón** (contador en vivo hh:mm:ss)|
+| N   | `expira_cupon`      | Opcional     | ``                             | Tiempo hasta que expire cupon |
 
 > 💡 **Lo mínimo que necesitas:** solo la columna `url`. El resto es opcional.
 
@@ -108,28 +108,12 @@ En GitHub: **Settings → Pages → Branch: main → Save**
 ## Cómo funciona el cupón
 
 1. Agrega el código en la columna `cupon` (ej: `SAVE20`)
-2. Si tiene expiry, agrega las horas en `expira_cupon` (ej: `48` = 2 días)
+2. Si tiene expiry, agrega el tiempo en `expira_cupon` (ej: `48` = 2 días)
 3. En la card aparecerá automáticamente:
    - Icono de tijera animado ✂️
    - El código del cupón
    - Botón **Copiar** (copia al portapapeles con animación de confirmación)
-   - Contador regresivo en vivo `⏱ Válido por: 01h 23m 45s`
-
----
-
-## Estructura de archivos
-
-```
-project/
-├── index.html       ← El sitio
-├── app.js           ← Lógica principal
-├── styles.css       ← Estilos
-├── images/
-│   ├── logo-es.png  ← Logo en español
-│   ├── logo-en.png  ← Logo en inglés
-│   └── README.md    ← Specs de imagen
-└── README.md        ← Esta guía
-```
+   - Contador regresivo en vivo `⏱ Válido por: XXX`
 
 ---
 
