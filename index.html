@@ -4,14 +4,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="pageTitle">AhorraMásUSA — Las Mejores Ofertas</title>
+  <title>DealSpot — Las Mejores Ofertas</title>
   <meta name="description" content="Las mejores ofertas y descuentos del día en tecnología, hogar, gaming y más." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
-
 </head>
 
 <body>
@@ -20,20 +19,25 @@
   <header class="header">
     <div class="container header-inner">
 
-      <!-- LOGO IMAGE (bilingual) -->
-      <a href="/" class="logo" id="logoLink">
-        <img id="logoImg" src="images/logo-es.png" alt="AhorraMásUSA" class="logo-img" />
+      <!-- LOGO -->
+      <a href="/" class="logo">
+        <svg class="logo-svg" width="14" height="22" viewBox="0 0 18 28" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <path d="M11 1L1.5 15.5H9L7.5 27L16.5 12.5H9.5L11 1Z" fill="var(--red)" stroke="var(--red)" stroke-width="0.6"
+            stroke-linejoin="round" />
+        </svg>
+        Deal<span>Spot</span>
       </a>
 
-      <!-- SEARCH (header) -->
+      <!-- SEARCH (header) — takes all available space -->
       <div class="header-search">
         <input type="search" id="searchInput" data-i18n-ph="searchPlaceholder" placeholder="🔍 Buscar ofertas…" />
       </div>
 
-      <!-- RIGHT: lang + menu -->
+      <!-- RIGHT: lang switch (always far right) -->
       <div class="header-right">
         <div class="lang-switch" role="group" aria-label="Idioma / Language">
-          <button class="lang-btn active" data-lang="es" title="Español">🇪🇸 ES</button>
+          <button class="lang-btn" data-lang="es" title="Español">🇪🇸 ES</button>
           <button class="lang-btn" data-lang="en" title="English">🇺🇸 EN</button>
         </div>
         <button class="menu-btn" id="menuBtn" aria-label="Menú">☰</button>
@@ -58,6 +62,8 @@
           <input type="search" id="heroSearchInput" data-i18n-ph="heroSearch"
             placeholder="🔍 Buscar entre todas las ofertas…" autocomplete="off" />
         </div>
+
+
       </div>
     </section>
 
@@ -108,9 +114,13 @@
         <div class="how-inner">
           <div class="how-header">
             <span class="how-eyebrow" data-i18n="howEyebrow">Guía rápida</span>
-            <h2 class="how-title" data-i18n="howTitle">¿Cómo funciona?</h2>
+            <h2 class="how-title" data-i18n="howTitle">¿Cómo funciona DealSpot?</h2>
           </div>
-          <div class="how-accordion" id="howAccordion"></div>
+          <!-- Accordion + Community card rendered by JS -->
+          <div class="how-accordion-wrap">
+            <div class="how-accordion" id="howAccordion"></div>
+            <!-- Community card injected by JS below accordion -->
+          </div>
         </div>
       </div>
     </section>
@@ -121,7 +131,11 @@
   <footer class="footer">
     <div class="container">
       <div class="footer-logo">
-        <img id="footerLogoImg" src="images/logo-es.png" alt="AhorraMásUSA" class="footer-logo-img" />
+        <svg viewBox="0 0 18 28" fill="none" width="14" height="22" aria-hidden="true">
+          <path d="M11 1L1.5 15.5H9L7.5 27L16.5 12.5H9.5L11 1Z" fill="var(--red)" stroke="var(--red)" stroke-width="0.6"
+            stroke-linejoin="round" />
+        </svg>
+        <strong>DealSpot</strong>
       </div>
       <p><span data-i18n="footerText">Sitio de afiliados. Los precios pueden variar al momento de la compra.</span></p>
       <p class="footer-sub" data-i18n="footerSub">
