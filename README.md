@@ -1,13 +1,13 @@
 # ⚡ SaveMoreDeals / AhorraMásUSA × Google Sheets — v2.0
 
-Tu sitio de deals se alimenta 100% de Google Sheets.
+El sitio de deals se alimenta 100% de Google Sheets.
 Soporta contenido **bilingüe (ES/EN)**, **cupones con contador de tiempo**, y logos intercambiables.
 
 ---
 
 ## Paso 1 — Estructura del Google Sheet
 
-Ve a [sheets.new](https://sheets.new) para crear una hoja nueva.
+Ir a [sheets.new](https://sheets.new) para crear una hoja nueva.
 
 ### Columnas completas (copia exactamente estos nombres en la fila 1)
 

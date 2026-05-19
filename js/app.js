@@ -216,9 +216,11 @@ function applyLang(lang) {
   const pageTitleEl = document.getElementById("pageTitle");
   if (pageTitleEl) pageTitleEl.textContent = L.pageTitle;
 
-  // Logo images (header + footer)
+  // Logo images (header + hero + footer)
   const logoImg = document.getElementById("logoImg");
   if (logoImg) { logoImg.src = L.logoSrc; logoImg.alt = L.appName; }
+  const heroLogoImg = document.getElementById("heroLogoImg");
+  if (heroLogoImg) { heroLogoImg.src = L.logoSrc; heroLogoImg.alt = L.appName; }
   const footerLogoImg = document.getElementById("footerLogoImg");
   if (footerLogoImg) { footerLogoImg.src = L.logoSrc; footerLogoImg.alt = L.appName; }
 
@@ -397,31 +399,31 @@ function normalizeRow(row) {
   const notas_es = get("notas_es", "notas", "notes", "descripcion", "description", "desc");
   const notas_en = get("notas_en") || notas_es;      // fallback a ES si EN vacío
 
-  const imagen    = get("imagen", "image", "img", "foto");
+  const imagen = get("imagen", "image", "img", "foto");
   const precioStr = get("precio", "price", "precio_actual");
-  const antStr    = get("precio_anterior", "precio_original", "original_price", "antes");
+  const antStr = get("precio_anterior", "precio_original", "original_price", "antes");
   const categoria = (get("categoria", "category", "cat").toLowerCase()) || "otros";
-  const badge     = get("badge", "etiqueta").toLowerCase();
-  const activo    = get("activo", "active", "visible");
+  const badge = get("badge", "etiqueta").toLowerCase();
+  const activo = get("activo", "active", "visible");
 
   // expira_en: acepta fecha ISO o horas (relativo — ok para deals, no ideal para cupones)
   const expiraDealStr = get("expira_en", "expires_in", "expira", "horas");
 
-  const cupon        = get("cupon", "cupón", "coupon", "codigo", "code");
-  const expCuponStr  = get("expira_cupon", "coupon_expires", "cupon_expira", "expira_codigo");
+  const cupon = get("cupon", "cupón", "coupon", "codigo", "code");
+  const expCuponStr = get("expira_cupon", "coupon_expires", "cupon_expira", "expira_codigo");
 
   if (!url || !isValidUrl(url)) return null;
   const isActive = activo
     ? !["no", "false", "0", "inactivo"].includes(activo.toLowerCase()) : true;
   if (!isActive) return null;
 
-  const precio   = parseFloat(precioStr.replace(/[$,]/g, "")) || 0;
+  const precio = parseFloat(precioStr.replace(/[$,]/g, "")) || 0;
   const anterior = parseFloat(antStr.replace(/[$,]/g, "")) || 0;
   const descuento = (anterior > precio && precio > 0)
     ? Math.round(((anterior - precio) / anterior) * 100) : 0;
 
   // Deal expiry — parseExpiryDate soporta fechas ISO y horas numéricas
-  const expiresAt     = parseExpiryDate(expiraDealStr);
+  const expiresAt = parseExpiryDate(expiraDealStr);
   // Coupon expiry — usar SIEMPRE fecha ISO en el Sheet para consistencia
   const cuponExpiresAt = cupon ? parseExpiryDate(expCuponStr) : null;
 
@@ -495,12 +497,12 @@ function buildCard(deal, index) {
   // ── Elige el idioma correcto para título y notas ──
   const titulo = (currentLang === "en" ? deal.titulo_en : deal.titulo_es)
     || L.defaultOffer(deal.store);
-  const notas  = currentLang === "en" ? deal.notas_en : deal.notas_es;
+  const notas = currentLang === "en" ? deal.notas_en : deal.notas_es;
 
   const badgeLabel = L.badgeLabels[deal.badge];
-  const badgeCss   = BADGE_CSS[deal.badge];
-  const catIcon    = CAT_ICONS[deal.categoria] || "📦";
-  const catLabel   = (CAT_LABELS[currentLang] || CAT_LABELS.es)[deal.categoria] || deal.categoria;
+  const badgeCss = BADGE_CSS[deal.badge];
+  const catIcon = CAT_ICONS[deal.categoria] || "📦";
+  const catLabel = (CAT_LABELS[currentLang] || CAT_LABELS.es)[deal.categoria] || deal.categoria;
 
   /* Price row */
   const priceHtml = deal.precio > 0
@@ -570,7 +572,7 @@ function buildCard(deal, index) {
   }
 
   const storeEmoji = { Amazon: "📦", Walmart: "🏪", "Best Buy": "💙", AliExpress: "🛒", eBay: "🔨" };
-  const emoji  = storeEmoji[deal.store] || "🛍️";
+  const emoji = storeEmoji[deal.store] || "🛍️";
   const imgSrc = deal.imagen
     || `https://placehold.co/400x400/021e47/444?text=${encodeURIComponent(emoji)}`;
 
@@ -611,7 +613,7 @@ function startCouponTimers() {
   setInterval(() => {
     document.querySelectorAll(".coupon-countdown[data-expires]").forEach(el => {
       const exp = new Date(el.dataset.expires);
-      const ms  = exp - Date.now();
+      const ms = exp - Date.now();
 
       if (ms <= 0) {
         el.textContent = t("couponExpired");
@@ -778,7 +780,7 @@ function renderDeals() {
   const totalPages = Math.ceil(filtered.length / DEALS_PER_PAGE);
   if (currentPage > totalPages) currentPage = totalPages;
 
-  const start    = (currentPage - 1) * DEALS_PER_PAGE;
+  const start = (currentPage - 1) * DEALS_PER_PAGE;
   const pageList = filtered.slice(start, start + DEALS_PER_PAGE);
 
   const frag = document.createDocumentFragment();
@@ -791,7 +793,7 @@ function renderDeals() {
 /* ── INIT ────────────────────────────────────────────────── */
 async function init() {
   const status = document.getElementById("statusMsg");
-  const grid   = document.getElementById("dealsGrid");
+  const grid = document.getElementById("dealsGrid");
 
   grid.innerHTML = Array(6).fill('<div class="skeleton"></div>').join("");
 

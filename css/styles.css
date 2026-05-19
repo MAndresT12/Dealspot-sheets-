@@ -243,6 +243,28 @@ input {
   text-align: center;
 }
 
+/* ── Hero logo ── */
+.hero-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.hero-logo-img {
+  height: clamp(100px, 20vw, 170px);
+  width: auto;
+  max-width: 340px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 24px rgba(209, 26, 30, .25));
+  transition: opacity .3s, transform .3s;
+  animation: fadeIn .45s ease both;
+}
+
+.hero-logo-img:hover {
+  transform: scale(1.03);
+}
+
 .hero-badge {
   display: inline-flex;
   align-items: center;
