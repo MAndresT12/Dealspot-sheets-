@@ -1,8 +1,20 @@
 /* =========================================================
-   DealSpot — app.js
+   DealSpot — app.js  v2.1
    Columnas Google Sheets admitidas:
-     url, titulo, imagen, precio, precio_anterior, categoria,
-     badge, notas, expira_en, activo, cupon, expira_cupon
+     url, titulo_es, titulo_en, imagen,
+     precio, precio_anterior, categoria,
+     badge, notas_es, notas_en,
+     expira_en, activo, cupon, expira_cupon
+
+   BILINGÜE: Las cards usan titulo_es / titulo_en y
+   notas_es / notas_en según el idioma activo.
+   Si _en está vacío, se usa el _es como fallback.
+
+   CUPÓN EXPIRY: expira_cupon acepta fecha ISO real
+   ("2026-05-30" o "2026-05-30 23:59") — así el timer
+   es consistente para todos los visitantes.
+   También acepta horas numéricas ("48") aunque no se
+   recomienda para cupones (cada visita reinicia el reloj).
    ========================================================= */
 "use strict";
 
@@ -50,7 +62,7 @@ const I18N = {
     remainH: "h restantes",
     remainD: "d restantes",
     dealCount: n => `${n} oferta${n !== 1 ? "s" : ""}`,
-    couponValidFor: "⏱ Válido por:",
+    couponExpiresIn: "Válido por:",   /* ← clave usada en el countdown del cupón */
     couponExpired: "⚠️ Cupón expirado",
     /* Pagination */
     prevPage: "← Anterior",
@@ -94,6 +106,7 @@ const I18N = {
     footerSub: "Participamos en el Programa de Afiliados de Amazon Services LLC y otros programas de afiliados.",
     /* Misc */
     storeLabel: "Tienda",
+    defaultOffer: store => `Oferta en ${store}`,
     errorTitle: "Error al cargar",
     errorHint: "Verifica que en tu Google Sheet hayas hecho:<br><strong>Archivo → Compartir → Publicar en la web</strong><br>→ Selecciona la hoja → formato CSV → Publicar",
     badgeLabels: { hot: "🔥 HOT", new: "✨ NUEVO", limited: "⏰ LIMITADO", sale: "💸 OFERTA" },
@@ -130,7 +143,7 @@ const I18N = {
     remainH: "h left",
     remainD: "d left",
     dealCount: n => `${n} deal${n !== 1 ? "s" : ""}`,
-    couponValidFor: "⏱ Valid for:",
+    couponExpiresIn: "Valid for:",    /* ← clave usada en el countdown del cupón */
     couponExpired: "⚠️ Coupon expired",
     prevPage: "← Prev",
     nextPage: "Next →",
@@ -168,6 +181,7 @@ const I18N = {
     footerText: "Affiliate site. Prices may vary at the time of purchase.",
     footerSub: "We participate in the Amazon Services LLC Associates Program and other affiliate programs.",
     storeLabel: "Store",
+    defaultOffer: store => `Deal at ${store}`,
     errorTitle: "Error loading",
     errorHint: "Verify that in your Google Sheet you have done:<br><strong>File → Share → Publish to web</strong><br>→ Select the sheet → CSV format → Publish",
     badgeLabels: { hot: "🔥 HOT", new: "✨ NEW", limited: "⏰ LIMITED", sale: "💸 SALE" },
@@ -325,25 +339,36 @@ async function fetchSheet() {
 /* ── PARSE EXPIRY DATE ───────────────────────────────────── */
 /**
  * Acepta:
- *  - Fecha ISO: "2026-05-24"  o  "2026-05-24 23:59"
- *  - Número de horas: "48"  (desde ahora)
+ *  - Fecha ISO real: "2026-05-30"  o  "2026-05-30 23:59"  ← RECOMENDADO para cupones
+ *  - Número de horas: "48"  (relativo a cada visita — NO recomendado para cupones)
  * Retorna un objeto Date o null.
+ *
+ * Para cupones, usa SIEMPRE una fecha real en la columna expira_cupon del Sheet,
+ * por ejemplo: 2026-05-30
+ * Así el countdown es el mismo para todos los visitantes.
  */
 function parseExpiryDate(str) {
   if (!str || !str.trim()) return null;
   const trimmed = str.trim();
-  // Try as hours number first (plain numeric)
+  // Plain number → horas desde ahora (relativo — no ideal para cupones)
   if (/^\d+(\.\d+)?$/.test(trimmed)) {
     const h = parseFloat(trimmed);
     return h > 0 ? new Date(Date.now() + h * 3_600_000) : null;
   }
-  // Try as date/datetime string
-  // Replace space separator with 'T' for ISO compatibility
+  // Fecha ISO — reemplaza espacio por 'T' para compatibilidad
   const parsed = new Date(trimmed.replace(" ", "T"));
   return isNaN(parsed.getTime()) ? null : parsed;
 }
 
 /* ── NORMALIZE ROW → DEAL ────────────────────────────────── */
+/**
+ * Soporta columnas bilingües:
+ *   titulo_es / titulo_en  (+ aliases: titulo, title, nombre, producto)
+ *   notas_es  / notas_en   (+ aliases: notas, notes, descripcion, description, desc)
+ *
+ * Fallback: si _en está vacío, se muestra el _es en ambos idiomas.
+ * Si no hay _es ni _en, se intenta con los alias legacy (titulo, notas).
+ */
 function normalizeRow(row) {
   const get = (...keys) => {
     for (const k of keys) { const v = row[k]; if (v?.trim()) return v.trim(); }
@@ -351,47 +376,55 @@ function normalizeRow(row) {
   };
 
   const url = get("url", "link", "enlace");
-  const titulo = get("titulo", "title", "nombre", "producto");
-  const imagen = get("imagen", "image", "img", "foto");
+
+  // ── Bilingüe: título ──
+  const titulo_es = get("titulo_es", "titulo", "title", "nombre", "producto");
+  const titulo_en = get("titulo_en") || titulo_es;   // fallback a ES si EN vacío
+
+  // ── Bilingüe: notas / descripción ──
+  const notas_es = get("notas_es", "notas", "notes", "descripcion", "description", "desc");
+  const notas_en = get("notas_en") || notas_es;      // fallback a ES si EN vacío
+
+  const imagen    = get("imagen", "image", "img", "foto");
   const precioStr = get("precio", "price", "precio_actual");
-  const antStr = get("precio_anterior", "precio_original", "original_price", "antes");
+  const antStr    = get("precio_anterior", "precio_original", "original_price", "antes");
   const categoria = (get("categoria", "category", "cat").toLowerCase()) || "otros";
-  const badge = get("badge", "etiqueta").toLowerCase();
-  const activo = get("activo", "active", "visible");
-  const expiresH = get("expira_en", "expires_in", "expira", "horas");
-  const notas = get("notas", "notes", "descripcion", "description", "desc");
-  const cupon = get("cupon", "cupón", "coupon", "codigo", "code");
-  // ── NEW: expiry date/time for coupon ──
-  const expCuponStr = get("expira_cupon", "coupon_expires", "cupon_expira", "expira_codigo");
+  const badge     = get("badge", "etiqueta").toLowerCase();
+  const activo    = get("activo", "active", "visible");
+
+  // expira_en: acepta fecha ISO o horas (relativo — ok para deals, no ideal para cupones)
+  const expiraDealStr = get("expira_en", "expires_in", "expira", "horas");
+
+  const cupon        = get("cupon", "cupón", "coupon", "codigo", "code");
+  const expCuponStr  = get("expira_cupon", "coupon_expires", "cupon_expira", "expira_codigo");
 
   if (!url || !isValidUrl(url)) return null;
   const isActive = activo
     ? !["no", "false", "0", "inactivo"].includes(activo.toLowerCase()) : true;
   if (!isActive) return null;
 
-  const precio = parseFloat(precioStr.replace(/[$,]/g, "")) || 0;
+  const precio   = parseFloat(precioStr.replace(/[$,]/g, "")) || 0;
   const anterior = parseFloat(antStr.replace(/[$,]/g, "")) || 0;
   const descuento = (anterior > precio && precio > 0)
     ? Math.round(((anterior - precio) / anterior) * 100) : 0;
 
-  // Deal expiry (countdown timer on the card)
-  let expiresAt = null;
-  const horas = parseFloat(expiresH);
-  if (horas > 0) expiresAt = new Date(Date.now() + horas * 3_600_000);
-
-  // Coupon expiry (countdown inside the coupon chip)
+  // Deal expiry — parseExpiryDate soporta fechas ISO y horas numéricas
+  const expiresAt     = parseExpiryDate(expiraDealStr);
+  // Coupon expiry — usar SIEMPRE fecha ISO en el Sheet para consistencia
   const cuponExpiresAt = cupon ? parseExpiryDate(expCuponStr) : null;
 
   return {
-    url, titulo, imagen, precio, anterior, descuento,
+    url,
+    titulo_es, titulo_en,   // ← guardamos ambas versiones
+    notas_es, notas_en,     // ← guardamos ambas versiones
+    imagen, precio, anterior, descuento,
     categoria: CAT_ICONS[categoria] ? categoria : "otros",
     badge: BADGE_CSS[badge] ? badge : "",
     store: detectStore(url),
-    notas, expiresAt,
+    expiresAt,
     cupon, cuponExpiresAt,
   };
 }
-
 
 /* ── COPY COUPON (global — called via onclick inside innerHTML) */
 window.copyDealCoupon = function (e, code) {
@@ -440,12 +473,22 @@ const SCISSORS_SVG = `<svg class="scissors-icon" viewBox="0 0 24 24" fill="none"
 </svg>`;
 
 /* ── BUILD CARD ──────────────────────────────────────────── */
+/**
+ * Lee deal.titulo_es / deal.titulo_en según currentLang.
+ * Lo mismo para notas_es / notas_en.
+ */
 function buildCard(deal, index) {
   const L = I18N[currentLang];
+
+  // ── Elige el idioma correcto para título y notas ──
+  const titulo = (currentLang === "en" ? deal.titulo_en : deal.titulo_es)
+    || L.defaultOffer(deal.store);
+  const notas  = currentLang === "en" ? deal.notas_en : deal.notas_es;
+
   const badgeLabel = L.badgeLabels[deal.badge];
-  const badgeCss = BADGE_CSS[deal.badge];
-  const catIcon = CAT_ICONS[deal.categoria] || "📦";
-  const catLabel = deal.categoria.charAt(0).toUpperCase() + deal.categoria.slice(1);
+  const badgeCss   = BADGE_CSS[deal.badge];
+  const catIcon    = CAT_ICONS[deal.categoria] || "📦";
+  const catLabel   = deal.categoria.charAt(0).toUpperCase() + deal.categoria.slice(1);
 
   /* Price row */
   const priceHtml = deal.precio > 0
@@ -473,7 +516,7 @@ function buildCard(deal, index) {
     }
   }
 
-  /* ── Coupon chip with scissors + countdown ── */
+  /* ── Coupon chip con tijeras + countdown ── */
   let couponHtml = "";
   if (deal.cupon) {
     const safeCode = deal.cupon.replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -484,7 +527,6 @@ function buildCard(deal, index) {
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
     </svg>`;
 
-    // Coupon countdown HTML
     let ctHtml = "";
     if (deal.cuponExpiresAt) {
       const msLeft = deal.cuponExpiresAt - Date.now();
@@ -516,10 +558,9 @@ function buildCard(deal, index) {
   }
 
   const storeEmoji = { Amazon: "📦", Walmart: "🏪", "Best Buy": "💙", AliExpress: "🛒", eBay: "🔨" };
-  const emoji = storeEmoji[deal.store] || "🛍️";
+  const emoji  = storeEmoji[deal.store] || "🛍️";
   const imgSrc = deal.imagen
     || `https://placehold.co/400x400/021e47/444?text=${encodeURIComponent(emoji)}`;
-  const titulo = deal.titulo || `Oferta en ${deal.store}`;
 
   const card = document.createElement("a");
   card.className = "card";
@@ -543,7 +584,7 @@ function buildCard(deal, index) {
         <span class="card-cat">${catIcon} ${catLabel}</span>
       </div>
       <h3 class="card-title">${titulo}</h3>
-      ${deal.notas ? `<p class="card-desc">${deal.notas}</p>` : ""}
+      ${notas ? `<p class="card-desc">${notas}</p>` : ""}
       ${priceHtml}
       ${couponHtml}
       ${timerHtml}
@@ -553,21 +594,19 @@ function buildCard(deal, index) {
   return card;
 }
 
-/* ── COUPON TIMER: live tick for all visible countdown elements ── */
+/* ── COUPON TIMER: live tick para todos los countdowns visibles ── */
 function startCouponTimers() {
   setInterval(() => {
     document.querySelectorAll(".coupon-countdown[data-expires]").forEach(el => {
       const exp = new Date(el.dataset.expires);
-      const ms = exp - Date.now();
+      const ms  = exp - Date.now();
 
       if (ms <= 0) {
         el.textContent = t("couponExpired");
         el.classList.remove("expiring");
         el.closest(".card-coupon")?.classList.add("coupon-expired");
       } else {
-        const formatted = `⏰ ${t("couponExpiresIn")} ${formatCountdown(ms)}`;
-        el.textContent = formatted;
-        // Mark as urgent (red pulse) if less than 1 hour remaining
+        el.textContent = `⏰ ${t("couponExpiresIn")} ${formatCountdown(ms)}`;
         el.classList.toggle("expiring", ms < 3_600_000);
       }
     });
@@ -645,7 +684,6 @@ function renderHowItWorks() {
   if (!accordion) return;
   const L = I18N[currentLang];
 
-  // ── FAQ accordion ──
   accordion.innerHTML = L.howItems.map((item, i) => `
     <div class="how-item${i === 0 ? " open" : ""}">
       <button class="how-q" onclick="toggleHow(this)" aria-expanded="${i === 0}">
@@ -661,12 +699,9 @@ function renderHowItWorks() {
     </div>
   `).join("");
 
-  // ── Community card (injected right after the accordion, inside how-accordion-wrap) ──
   const wrap = document.querySelector(".how-accordion-wrap");
   if (wrap) {
-    // Remove previous community card if re-rendering
     wrap.querySelector(".community-card")?.remove();
-
     const card = document.createElement("div");
     card.className = "community-card";
     card.innerHTML = `
@@ -706,9 +741,10 @@ function renderDeals() {
   if (currentCat !== "all")
     filtered = filtered.filter(d => d.categoria === currentCat);
   if (currentSearch)
+    // Busca en ambas versiones de idioma + store + categoría + cupón
     filtered = filtered.filter(d =>
-      (d.titulo + d.store + d.categoria + d.notas + d.cupon)
-        .toLowerCase().includes(currentSearch)
+      [d.titulo_es, d.titulo_en, d.notas_es, d.notas_en, d.store, d.categoria, d.cupon]
+        .join(" ").toLowerCase().includes(currentSearch)
     );
 
   const label = document.getElementById("countLabel");
@@ -730,7 +766,7 @@ function renderDeals() {
   const totalPages = Math.ceil(filtered.length / DEALS_PER_PAGE);
   if (currentPage > totalPages) currentPage = totalPages;
 
-  const start = (currentPage - 1) * DEALS_PER_PAGE;
+  const start    = (currentPage - 1) * DEALS_PER_PAGE;
   const pageList = filtered.slice(start, start + DEALS_PER_PAGE);
 
   const frag = document.createDocumentFragment();
@@ -743,7 +779,7 @@ function renderDeals() {
 /* ── INIT ────────────────────────────────────────────────── */
 async function init() {
   const status = document.getElementById("statusMsg");
-  const grid = document.getElementById("dealsGrid");
+  const grid   = document.getElementById("dealsGrid");
 
   grid.innerHTML = Array(6).fill('<div class="skeleton"></div>').join("");
 
@@ -796,7 +832,6 @@ async function init() {
       if (s) s.style.display = s.style.display === "block" ? "none" : "block";
     });
 
-    // Start live coupon countdowns
     startCouponTimers();
 
   } catch (err) {
