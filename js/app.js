@@ -1165,10 +1165,33 @@ function initModals() {
   });
 }
 
+/* ── GOOGLE ANALYTICS 4 — CONSENTIMIENTO ─────────────────── */
+function enableAnalytics() {
+  if (typeof gtag !== "function") return;
+  // Actualizar consentimiento: ahora sí puede enviar datos
+  gtag("consent", "update", {
+    analytics_storage: "granted"
+  });
+  // Configurar la propiedad GA4
+  gtag("config", window.GA_MEASUREMENT_ID, {
+    anonymize_ip: true,
+    cookie_flags: "SameSite=None;Secure"
+  });
+  console.log("✅ Google Analytics activado");
+}
+
 /* ── COOKIE BANNER ───────────────────────────────────────── */
 function initCookieBanner() {
   const consent = localStorage.getItem("ds_cookie_consent");
-  if (consent) return;
+
+  // Si ya aceptó antes → activar Analytics de inmediato
+  if (consent === "all") {
+    enableAnalytics();
+    return;
+  }
+
+  // Si ya rechazó → no mostrar banner ni activar GA
+  if (consent === "essential") return;
 
   const banner = document.getElementById("cookieBanner");
   if (!banner) return;
@@ -1186,11 +1209,13 @@ function initCookieBanner() {
 
   document.getElementById("cookieAcceptBtn")?.addEventListener("click", () => {
     localStorage.setItem("ds_cookie_consent", "all");
+    enableAnalytics(); // ← activar GA solo si acepta
     hideBanner();
   });
 
   document.getElementById("cookieDeclineBtn")?.addEventListener("click", () => {
     localStorage.setItem("ds_cookie_consent", "essential");
+    // GA permanece con analytics_storage: "denied" → no rastrea
     hideBanner();
   });
 }
