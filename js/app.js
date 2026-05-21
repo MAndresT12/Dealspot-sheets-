@@ -1165,41 +1165,32 @@ function initModals() {
   });
 }
 
-/* ── GOOGLE ANALYTICS 4 ──────────────────────────────────── */
-function loadGoogleAnalytics() {
-  const id = window.GA_MEASUREMENT_ID;
-  if (!id || id === "G-XXXXXXXXXX" || window.gaLoaded) return;
-  window.gaLoaded = true;
-
-  // Inyectar script de GA4 dinámicamente
-  const script = document.createElement("script");
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
-  document.head.appendChild(script);
-
-  window.dataLayer = window.dataLayer || [];
-  function gtag() { dataLayer.push(arguments); }
-  window.gtag = gtag;
-  gtag("js", new Date());
-  gtag("config", id, {
-    anonymize_ip: true,          // Anonimiza IPs (buena práctica GDPR)
-    cookie_flags: "SameSite=None;Secure",
+/* ── GOOGLE ANALYTICS 4 — CONSENTIMIENTO ─────────────────── */
+function enableAnalytics() {
+  if (typeof gtag !== "function") return;
+  // Actualizar consentimiento: ahora sí puede enviar datos
+  gtag("consent", "update", {
+    analytics_storage: "granted"
   });
-
-  console.log("✅ Google Analytics cargado");
+  // Configurar la propiedad GA4
+  gtag("config", window.GA_MEASUREMENT_ID, {
+    anonymize_ip: true,
+    cookie_flags: "SameSite=None;Secure"
+  });
+  console.log("✅ Google Analytics activado");
 }
 
 /* ── COOKIE BANNER ───────────────────────────────────────── */
 function initCookieBanner() {
   const consent = localStorage.getItem("ds_cookie_consent");
 
-  // Si ya aceptó todas las cookies anteriormente, cargar GA inmediatamente
+  // Si ya aceptó antes → activar Analytics de inmediato
   if (consent === "all") {
-    loadGoogleAnalytics();
+    enableAnalytics();
     return;
   }
 
-  // Si ya eligió "solo esenciales", no mostrar banner ni cargar GA
+  // Si ya rechazó → no mostrar banner ni activar GA
   if (consent === "essential") return;
 
   const banner = document.getElementById("cookieBanner");
@@ -1218,13 +1209,13 @@ function initCookieBanner() {
 
   document.getElementById("cookieAcceptBtn")?.addEventListener("click", () => {
     localStorage.setItem("ds_cookie_consent", "all");
-    loadGoogleAnalytics(); // Cargar GA cuando el usuario acepta
+    enableAnalytics(); // ← activar GA solo si acepta
     hideBanner();
   });
 
   document.getElementById("cookieDeclineBtn")?.addEventListener("click", () => {
     localStorage.setItem("ds_cookie_consent", "essential");
-    // NO cargar GA si rechaza
+    // GA permanece con analytics_storage: "denied" → no rastrea
     hideBanner();
   });
 }
