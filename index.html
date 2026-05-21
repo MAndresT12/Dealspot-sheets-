@@ -76,25 +76,16 @@
     frame-src   'none';
   ">
 
-  <!-- ══════════════════════════════════════════
-       GOOGLE ANALYTICS 4
-  ══════════════════════════════════════════ -->
+  <!-- Google Analytics 4 — REEMPLAZA G-XXXXXXXXXX con tu Measurement ID real -->
   <script>
-    // GA4 se inicializa aquí pero NO envía datos hasta que el usuario acepte cookies
-    window.GA_MEASUREMENT_ID = "G-2JHZWWX9EM";
+    window.GA_MEASUREMENT_ID = "G-XXXXXXXXXX";
     window.dataLayer = window.dataLayer || [];
     function gtag() { window.dataLayer.push(arguments); }
     window.gtag = gtag;
-    // Modo de consentimiento: denegar todo por defecto (GDPR)
-    gtag("consent", "default", {
-      analytics_storage: "denied",
-      ad_storage: "denied",
-      wait_for_update: 500
-    });
+    gtag("consent", "default", { analytics_storage: "denied", ad_storage: "denied", wait_for_update: 500 });
     gtag("js", new Date());
   </script>
-  <!-- Carga el script de GA4 de forma estática (evita problemas de CSP) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2JHZWWX9EM"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
 
   <!-- ══════════════════════════════════════════
        STRUCTURED DATA (JSON-LD)
@@ -285,7 +276,7 @@
                 </div>
                 <div>
                   <p class="contact-info-label">Email</p>
-                  <p class="contact-info-value">savemoreusadeals@gmail.com</p>
+                  <p class="contact-info-value">lia29.aguilar@gmail.com</p>
                 </div>
               </div>
               <div class="contact-info-card">
@@ -384,6 +375,11 @@
         <span class="footer-legal-sep" aria-hidden="true">·</span>
         <button class="footer-legal-link" onclick="openModal('cookies')" data-i18n="cookiesPolicyLabel">
           Política de Cookies
+        </button>
+        <span class="footer-legal-sep" aria-hidden="true">·</span>
+        <button class="footer-legal-link" id="cookiePrefBtn" onclick="openCookiePreferences()"
+          data-i18n="cookiePrefsLabel">
+          ⚙️ Preferencias de Cookies
         </button>
         <span class="footer-legal-sep" aria-hidden="true">·</span>
         <a class="footer-legal-link" href="#contact" data-i18n="contactNavLabel">Contacto</a>
@@ -495,6 +491,95 @@
       </button>
     </div>
     <div class="modal-body" id="modal-cookies-body"><!-- Rendered by JS --></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       COOKIE PREFERENCES MODAL
+  ════════════════════════════════════════════ -->
+  <div class="modal" id="modal-cookie-prefs" role="dialog" aria-modal="true" aria-labelledby="modal-cookie-prefs-title">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-cookie-prefs-title" data-i18n="cookiePrefTitle">⚙️ Preferencias de Cookies</h2>
+      <button class="modal-close" onclick="closeCookiePreferences()" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="cookie-prefs-body">
+
+        <p class="cookie-prefs-intro" data-i18n="cookiePrefIntro">
+          Gestiona qué cookies deseas permitir. Puedes cambiar estas preferencias en cualquier momento.
+        </p>
+
+        <!-- Cookie esenciales -->
+        <div class="cookie-pref-item">
+          <div class="cookie-pref-info">
+            <div class="cookie-pref-top">
+              <span class="cookie-pref-name" data-i18n="cookiePrefEssentialName">🔒 Cookies Esenciales</span>
+              <span class="cookie-toggle-badge badge-always" data-i18n="cookiePrefAlways">Siempre activas</span>
+            </div>
+            <p class="cookie-pref-desc" data-i18n="cookiePrefEssentialDesc">
+              Necesarias para el funcionamiento básico del sitio: recordar tu idioma preferido y tu decisión sobre
+              cookies. No se pueden desactivar.
+            </p>
+            <div class="cookie-pref-tags">
+              <span class="cookie-tag">ds_lang</span>
+              <span class="cookie-tag">ds_cookie_consent</span>
+            </div>
+          </div>
+          <label class="cookie-toggle disabled" aria-label="Siempre activas">
+            <input type="checkbox" checked disabled />
+            <span class="cookie-toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="cookie-pref-divider"></div>
+
+        <!-- Cookies analíticas -->
+        <div class="cookie-pref-item">
+          <div class="cookie-pref-info">
+            <div class="cookie-pref-top">
+              <span class="cookie-pref-name" data-i18n="cookiePrefAnalyticsName">📊 Cookies de Analítica</span>
+              <span class="cookie-toggle-badge badge-optional" data-i18n="cookiePrefOptional">Opcional</span>
+            </div>
+            <p class="cookie-pref-desc" data-i18n="cookiePrefAnalyticsDesc">
+              Google Analytics para entender cómo se usa el sitio (páginas vistas, tiempo de sesión, país). Los datos
+              son anónimos y no te identifican personalmente.
+            </p>
+            <div class="cookie-pref-tags">
+              <span class="cookie-tag">_ga</span>
+              <span class="cookie-tag">_ga_*</span>
+              <span class="cookie-tag">Google Analytics</span>
+            </div>
+          </div>
+          <label class="cookie-toggle" aria-label="Cookies de analítica">
+            <input type="checkbox" id="analyticsToggle" />
+            <span class="cookie-toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="cookie-pref-divider"></div>
+
+        <!-- Estado actual -->
+        <div class="cookie-pref-status" id="cookiePrefStatus"></div>
+
+        <!-- Acciones -->
+        <div class="cookie-pref-actions">
+          <button class="cookie-pref-btn cookie-pref-btn--delete" onclick="deleteAllCookies()"
+            data-i18n="cookiePrefDelete">
+            🗑️ Eliminar todas mis cookies
+          </button>
+          <button class="cookie-pref-btn cookie-pref-btn--save" onclick="saveCookiePreferences()"
+            data-i18n="cookiePrefSave">
+            ✅ Guardar preferencias
+          </button>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <script src="js/app.js"></script>

@@ -118,7 +118,24 @@ const I18N = {
     privacyPolicyLabel: "Política de Privacidad",
     termsLabel: "Términos y Condiciones",
     cookiesPolicyLabel: "Política de Cookies",
+    cookiePrefsLabel: "⚙️ Preferencias de Cookies",
     contactNavLabel: "Contacto",
+    /* Cookie preferences modal */
+    cookiePrefTitle: "⚙️ Preferencias de Cookies",
+    cookiePrefIntro: "Gestiona qué cookies deseas permitir. Puedes cambiar estas preferencias en cualquier momento.",
+    cookiePrefEssentialName: "🔒 Cookies Esenciales",
+    cookiePrefAlways: "Siempre activas",
+    cookiePrefEssentialDesc: "Necesarias para el funcionamiento básico del sitio: recordar tu idioma y tu decisión sobre cookies. No se pueden desactivar.",
+    cookiePrefAnalyticsName: "📊 Cookies de Analítica",
+    cookiePrefOptional: "Opcional",
+    cookiePrefAnalyticsDesc: "Google Analytics para entender cómo se usa el sitio (páginas vistas, tiempo de sesión, país). Los datos son anónimos.",
+    cookiePrefDelete: "🗑️ Eliminar todas mis cookies",
+    cookiePrefSave: "✅ Guardar preferencias",
+    cookiePrefSaved: "✓ ¡Guardado!",
+    cookiePrefDeleted: "🗑️ ¡Eliminadas!",
+    cookiePrefStatusNone: "Aún no has guardado tus preferencias.",
+    cookiePrefStatusAll: "✅ Tienes todas las cookies activadas.",
+    cookiePrefStatusEss: "🔒 Solo cookies esenciales activadas.",
     footerRights: `© ${new Date().getFullYear()} AhorraMásUSA. Todos los derechos reservados.`,
     /* Footer */
     footerText: "Sitio de afiliados. Los precios pueden variar al momento de la compra.",
@@ -224,7 +241,24 @@ const I18N = {
     privacyPolicyLabel: "Privacy Policy",
     termsLabel: "Terms & Conditions",
     cookiesPolicyLabel: "Cookie Policy",
+    cookiePrefsLabel: "⚙️ Cookie Preferences",
     contactNavLabel: "Contact",
+    /* Cookie preferences modal */
+    cookiePrefTitle: "⚙️ Cookie Preferences",
+    cookiePrefIntro: "Manage which cookies you want to allow. You can change these preferences at any time.",
+    cookiePrefEssentialName: "🔒 Essential Cookies",
+    cookiePrefAlways: "Always active",
+    cookiePrefEssentialDesc: "Required for basic site functionality: remembering your language and cookie decision. Cannot be disabled.",
+    cookiePrefAnalyticsName: "📊 Analytics Cookies",
+    cookiePrefOptional: "Optional",
+    cookiePrefAnalyticsDesc: "Google Analytics to understand how the site is used (page views, session time, country). Data is anonymous.",
+    cookiePrefDelete: "🗑️ Delete all my cookies",
+    cookiePrefSave: "✅ Save preferences",
+    cookiePrefSaved: "✓ Saved!",
+    cookiePrefDeleted: "🗑️ Deleted!",
+    cookiePrefStatusNone: "You haven't saved your preferences yet.",
+    cookiePrefStatusAll: "✅ All cookies are enabled.",
+    cookiePrefStatusEss: "🔒 Essential cookies only.",
     footerRights: `© ${new Date().getFullYear()} SaveMoreUSADeals. All rights reserved.`,
     footerText: "Affiliate site. Prices may vary at the time of purchase.",
     footerSub: "We participate in the Amazon Services LLC Associates Program and other affiliate programs.",
@@ -1168,29 +1202,151 @@ function initModals() {
 /* ── GOOGLE ANALYTICS 4 — CONSENTIMIENTO ─────────────────── */
 function enableAnalytics() {
   if (typeof gtag !== "function") return;
-  // Actualizar consentimiento: ahora sí puede enviar datos
-  gtag("consent", "update", {
-    analytics_storage: "granted"
-  });
-  // Configurar la propiedad GA4
+  gtag("consent", "update", { analytics_storage: "granted" });
   gtag("config", window.GA_MEASUREMENT_ID, {
     anonymize_ip: true,
     cookie_flags: "SameSite=None;Secure"
   });
-  console.log("✅ Google Analytics activado");
 }
+
+function disableAnalytics() {
+  if (typeof gtag !== "function") return;
+  gtag("consent", "update", { analytics_storage: "denied" });
+}
+
+/* ── COOKIE PREFERENCES MODAL ────────────────────────────── */
+window.openCookiePreferences = function () {
+  const modal = document.getElementById("modal-cookie-prefs");
+  const overlay = document.getElementById("modalOverlay");
+  const toggle = document.getElementById("analyticsToggle");
+  const status = document.getElementById("cookiePrefStatus");
+  if (!modal || !overlay) return;
+
+  // Reflejar estado actual en el toggle
+  const consent = localStorage.getItem("ds_cookie_consent");
+  if (toggle) toggle.checked = consent === "all";
+
+  // Mostrar estado actual
+  renderPrefStatus(status, consent);
+
+  overlay.classList.add("open");
+  modal.classList.add("open");
+  document.body.classList.add("modal-open");
+};
+
+window.closeCookiePreferences = function () {
+  document.getElementById("modal-cookie-prefs")?.classList.remove("open");
+  document.getElementById("modalOverlay")?.classList.remove("open");
+  document.body.classList.remove("modal-open");
+};
+
+function renderPrefStatus(el, consent) {
+  if (!el) return;
+  const L = I18N[currentLang];
+  const isAll = consent === "all";
+  const hasConsent = consent !== null;
+
+  el.innerHTML = `
+    <div class="pref-status-row">
+      <span class="pref-status-dot ${hasConsent ? (isAll ? "dot-green" : "dot-yellow") : "dot-gray"}"></span>
+      <span class="pref-status-text">
+        ${!hasConsent
+      ? (L.cookiePrefStatusNone || "Aún no has guardado preferencias.")
+      : isAll
+        ? (L.cookiePrefStatusAll || "✅ Tienes todas las cookies activadas.")
+        : (L.cookiePrefStatusEss || "🔒 Solo cookies esenciales activadas.")}
+      </span>
+    </div>`;
+}
+
+window.saveCookiePreferences = function () {
+  const toggle = document.getElementById("analyticsToggle");
+  const status = document.getElementById("cookiePrefStatus");
+  const consent = toggle?.checked ? "all" : "essential";
+
+  localStorage.setItem("ds_cookie_consent", consent);
+
+  // Activar o desactivar GA según la elección
+  if (consent === "all") {
+    enableAnalytics();
+  } else {
+    disableAnalytics();
+  }
+
+  // Ocultar banner de cookies si aún está visible
+  const banner = document.getElementById("cookieBanner");
+  if (banner?.classList.contains("visible")) {
+    banner.classList.remove("visible");
+    document.body.classList.remove("cookie-visible");
+    setTimeout(() => banner.style.display = "none", 400);
+  }
+
+  renderPrefStatus(status, consent);
+
+  // Feedback visual en el botón guardar
+  const btn = document.querySelector(".cookie-pref-btn--save");
+  if (btn) {
+    const L = I18N[currentLang];
+    const orig = btn.innerHTML;
+    btn.innerHTML = L.cookiePrefSaved || "✓ ¡Guardado!";
+    btn.style.background = "var(--green)";
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.style.background = "";
+      closeCookiePreferences();
+    }, 1400);
+  }
+};
+
+window.deleteAllCookies = function () {
+  const L = I18N[currentLang];
+  const btn = document.querySelector(".cookie-pref-btn--delete");
+
+  // Eliminar localStorage del sitio
+  localStorage.removeItem("ds_cookie_consent");
+  localStorage.removeItem("ds_lang");
+
+  // Desactivar GA
+  disableAnalytics();
+
+  // Actualizar toggle y estado
+  const toggle = document.getElementById("analyticsToggle");
+  if (toggle) toggle.checked = false;
+  renderPrefStatus(document.getElementById("cookiePrefStatus"), null);
+
+  // Feedback visual
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = L.cookiePrefDeleted || "🗑️ ¡Eliminadas!";
+    btn.style.background = "rgba(209,26,30,.25)";
+    btn.style.color = "#ff6b6b";
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.style.background = "";
+      btn.style.color = "";
+    }, 2000);
+  }
+
+  // Mostrar el banner de nuevo para que el usuario elija de nuevo
+  setTimeout(() => {
+    closeCookiePreferences();
+    const banner = document.getElementById("cookieBanner");
+    if (banner) {
+      banner.style.display = "";
+      setTimeout(() => {
+        banner.classList.add("visible");
+        document.body.classList.add("cookie-visible");
+      }, 300);
+    }
+  }, 1600);
+};
 
 /* ── COOKIE BANNER ───────────────────────────────────────── */
 function initCookieBanner() {
   const consent = localStorage.getItem("ds_cookie_consent");
 
-  // Si ya aceptó antes → activar Analytics de inmediato
-  if (consent === "all") {
-    enableAnalytics();
-    return;
-  }
-
-  // Si ya rechazó → no mostrar banner ni activar GA
+  // Ya eligió antes → aplicar preferencia guardada
+  if (consent === "all") { enableAnalytics(); return; }
   if (consent === "essential") return;
 
   const banner = document.getElementById("cookieBanner");
@@ -1209,13 +1365,12 @@ function initCookieBanner() {
 
   document.getElementById("cookieAcceptBtn")?.addEventListener("click", () => {
     localStorage.setItem("ds_cookie_consent", "all");
-    enableAnalytics(); // ← activar GA solo si acepta
+    enableAnalytics();
     hideBanner();
   });
 
   document.getElementById("cookieDeclineBtn")?.addEventListener("click", () => {
     localStorage.setItem("ds_cookie_consent", "essential");
-    // GA permanece con analytics_storage: "denied" → no rastrea
     hideBanner();
   });
 }
