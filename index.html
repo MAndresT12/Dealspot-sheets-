@@ -65,37 +65,8 @@
   <!-- Impact / Target Affiliate Verification -->
   <meta name="impact-site-verification" value="5d5e6ab0-7461-40e3-96ef-02af5a8bfb29" />
 
-  <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src  'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://fonts.googleapis.com;
-    style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src    'self' https://fonts.gstatic.com;
-    img-src     'self' data: blob: https: http:;
-    connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://docs.google.com https://api.web3forms.com;
-    frame-src   'none';
-  ">
-
-  <!-- ══════════════════════════════════════════
-       GOOGLE ANALYTICS 4
-       ⚠️ REEMPLAZA G-XXXXXXXXXX con tu Measurement ID real
-  ══════════════════════════════════════════ -->
-  <script>
-    // GA4 se inicializa aquí pero NO envía datos hasta que el usuario acepte cookies
-    window.GA_MEASUREMENT_ID = "G-XXXXXXXXXX";
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { window.dataLayer.push(arguments); }
-    window.gtag = gtag;
-    // Modo de consentimiento: denegar todo por defecto (GDPR)
-    gtag("consent", "default", {
-      analytics_storage: "denied",
-      ad_storage: "denied",
-      wait_for_update: 500
-    });
-    gtag("js", new Date());
-  </script>
-  <!-- Carga el script de GA4 de forma estática (evita problemas de CSP) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <!-- Google Analytics 4 — REEMPLAZA G-XXXXXXXXXX con tu Measurement ID real -->
+  <script>window.GA_MEASUREMENT_ID = "G-XXXXXXXXXX";</script>
 
   <!-- ══════════════════════════════════════════
        STRUCTURED DATA (JSON-LD)
